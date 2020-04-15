@@ -10,6 +10,12 @@ phases:
   build:
     commands:
     - ./vendor/bin/phpunit
+reports:
+  test-report:
+    files:
+      - build/reports.xml
+    file-format: JunitXml
+
 artifacts:
   files:
   - build/reports.xml
