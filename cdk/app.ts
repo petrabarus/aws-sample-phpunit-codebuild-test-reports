@@ -20,6 +20,7 @@ class AppStack extends cdk.Stack {
 class Pipeline extends cdk.Construct {
     constructor(scope: cdk.Construct, id: string) {
         super(scope, id);
+        this.createPipeline();
     }
 
     private createPipeline() {

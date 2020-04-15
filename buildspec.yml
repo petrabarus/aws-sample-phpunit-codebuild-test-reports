@@ -12,4 +12,4 @@ phases:
     - ./vendor/bin/phpunit
 artifacts:
   files:
-  - imagedefinitions.json
+  - build/reports.xml
