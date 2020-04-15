@@ -5,6 +5,7 @@
 
 import 'source-map-support/register';
 import cdk = require('@aws-cdk/core');
+import iam = require('@aws-cdk/aws-iam');
 import codebuild = require('@aws-cdk/aws-codebuild');
 import codepipeline = require('@aws-cdk/aws-codepipeline');
 import codepipelineActions = require('@aws-cdk/aws-codepipeline-actions');
@@ -62,13 +63,32 @@ class Pipeline extends cdk.Construct {
                 privileged: true,
             },
         };
-
         const project = new codebuild.PipelineProject(this, 'Project', props);
+        const concat = new cdk.StringConcat();
+        //"arn:aws:codebuild:your-region:your-aws-account-id:report-group/my-project-*";
+        const reportArn = cdk.Arn.format({
+            partition: 'aws',
+            service: 'codebuild',
+            resource: `report-group/${project.projectName}-*`
+        }, cdk.Stack.of(this));
+        project.addToRolePolicy(new iam.PolicyStatement({
+            resources: [
+                reportArn,
+            ],
+            effect: iam.Effect.ALLOW,
+            actions: [
+                "codebuild:CreateReportGroup",
+                "codebuild:CreateReport",
+                "codebuild:UpdateReport",
+                "codebuild:BatchPutTestCases"
+            ]
+        }));
         const codebuildAction = new codepipelineActions.CodeBuildAction({
             actionName: 'CodeBuild_Action',
             input: input,
             outputs: [output],
             project: project,
+            
         });
 
         return {
