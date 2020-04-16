@@ -13,6 +13,6 @@ class MyClassTest extends TestCase {
     public function testMethod2() {
         $object = new MyClass();
         $this->assertEquals('11', $object->method2('1', '1'));
-        $this->assertEquals('12', $object->method2('1', '2'));
+        $this->assertEquals('123', $object->method2('1', '2'));
     }
 }
