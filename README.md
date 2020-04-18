@@ -13,7 +13,10 @@ docker run phpunit-codebuild-test-reports ./vendor/bin/phpunit
 
 ## Running on Cloud
 
-To deploy in AWS, execute following with permission to create resources.
+To deploy in AWS, first you need to set the **Github OAuth token** in Secret Manager with name `GITHUB_OAUTH_TOKEN` 
+and **username** and **repo name** in the Parameter Store with names `GITHUB_REPO` and `GITHUB_OWNER` respectively.
+
+After you store it, execute following with permission to create resources.
 
 ```bash
 cdk deploy

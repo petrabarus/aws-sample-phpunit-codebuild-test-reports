@@ -25,13 +25,12 @@ class AppStack extends cdk.Stack {
     }
 
     createSource(): codebuild.Source {
-        const prefix = '/repos/aws-sample-phpunit-codebuild-test-reports';
-        const secret = cdk.SecretValue.secretsManager(prefix + '/GITHUB_OAUTH_TOKEN');
+        const secret = cdk.SecretValue.secretsManager('GITHUB_OAUTH_TOKEN');
         new codebuild.GitHubSourceCredentials(this, 'GithubCredentials', {
             accessToken: secret,
         })
-        const repo = ssm.StringParameter.valueForStringParameter(this, prefix + '/GITHUB_REPO');
-        const owner = ssm.StringParameter.valueForStringParameter(this, prefix + '/GITHUB_OWNER');
+        const repo = ssm.StringParameter.valueForStringParameter(this, 'GITHUB_REPO');
+        const owner = ssm.StringParameter.valueForStringParameter(this, 'GITHUB_OWNER');
         const source = codebuild.Source.gitHub({
             owner: owner,
             repo: repo,
