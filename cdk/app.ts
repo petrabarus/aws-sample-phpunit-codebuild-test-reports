@@ -35,6 +35,10 @@ class AppStack extends cdk.Stack {
         const source = codebuild.Source.gitHub({
             owner: owner,
             repo: repo,
+            webhook: true,
+            webhookFilters: [
+                codebuild.FilterGroup.inEventOf(codebuild.EventAction.PUSH).andBranchIs('master'),
+            ]
         });
 
         return source;
