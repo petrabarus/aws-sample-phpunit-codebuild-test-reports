@@ -5,72 +5,50 @@
 
 import 'source-map-support/register';
 import cdk = require('@aws-cdk/core');
-import iam = require('@aws-cdk/aws-iam');
 import codebuild = require('@aws-cdk/aws-codebuild');
-import codepipeline = require('@aws-cdk/aws-codepipeline');
-import codepipelineActions = require('@aws-cdk/aws-codepipeline-actions');
+import iam = require('@aws-cdk/aws-iam');
 import ssm = require("@aws-cdk/aws-ssm");
 
 class AppStack extends cdk.Stack {
     constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
-        new Pipeline(this, 'Pipeline');
-    }
-}
-
-class Pipeline extends cdk.Construct {
-    constructor(scope: cdk.Construct, id: string) {
-        super(scope, id);
-        this.createPipeline();
+        this.createBuild();
     }
 
-    private createPipeline() {
-        const sourceOutput = new codepipeline.Artifact();
-        const buildOutput = new codepipeline.Artifact();
-        new codepipeline.Pipeline(this, 'Pipeline', {
-            stages: [
-                this.createSourceStage('Source', sourceOutput),
-                this.createTestStage('Build', sourceOutput, buildOutput),
-            ]
+    createBuild() {
+        const source = this.createSource();
+        const project = new codebuild.Project(this, 'Build', {
+            source: source,
         });
+
+        this.addTestReportPermissionToProject(project);
     }
 
-    private createSourceStage(stageName: string, output: codepipeline.Artifact): codepipeline.StageProps {
+    createSource(): codebuild.Source {
         const prefix = '/repos/aws-sample-phpunit-codebuild-test-reports';
         const secret = cdk.SecretValue.secretsManager(prefix + '/GITHUB_OAUTH_TOKEN');
+        new codebuild.GitHubSourceCredentials(this, 'GithubCredentials', {
+            accessToken: secret,
+        })
         const repo = ssm.StringParameter.valueForStringParameter(this, prefix + '/GITHUB_REPO');
         const owner = ssm.StringParameter.valueForStringParameter(this, prefix + '/GITHUB_OWNER');
-        const githubAction = new codepipelineActions.GitHubSourceAction({
-            actionName: 'Github_Source',
+        const source = codebuild.Source.gitHub({
             owner: owner,
             repo: repo,
-            oauthToken: secret,
-            output: output,
         });
-        return {
-            stageName: stageName,
-            actions: [githubAction],
-        };
+
+        return source;
     }
 
-    private createTestStage(
-        stageName: string,
-        input: codepipeline.Artifact,
-        output: codepipeline.Artifact): codepipeline.StageProps {
-        const props = {
-            environment: {
-                buildImage: codebuild.LinuxBuildImage.STANDARD_2_0,
-                privileged: true,
-            },
-        };
-        const project = new codebuild.PipelineProject(this, 'Project', props);
-        const concat = new cdk.StringConcat();
+    addTestReportPermissionToProject(project: codebuild.IProject) {
         //"arn:aws:codebuild:your-region:your-aws-account-id:report-group/my-project-*";
-        const reportArn = cdk.Arn.format({
+        const pattern = {
             partition: 'aws',
             service: 'codebuild',
             resource: `report-group/${project.projectName}-*`
-        }, cdk.Stack.of(this));
+        };
+        const reportArn = cdk.Arn.format(pattern, cdk.Stack.of(this));
+
         project.addToRolePolicy(new iam.PolicyStatement({
             resources: [
                 reportArn,
@@ -83,18 +61,6 @@ class Pipeline extends cdk.Construct {
                 "codebuild:BatchPutTestCases"
             ]
         }));
-        const codebuildAction = new codepipelineActions.CodeBuildAction({
-            actionName: 'CodeBuild_Action',
-            input: input,
-            outputs: [output],
-            project: project,
-            
-        });
-
-        return {
-            stageName: stageName,
-            actions: [codebuildAction],
-        };
     }
 }
 
