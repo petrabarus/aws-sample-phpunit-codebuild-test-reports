@@ -13,7 +13,3 @@ reports:
     files:
       - build/reports.xml
     file-format: JunitXml
-
-artifacts:
-  files:
-  - build/reports.xml
