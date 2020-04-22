@@ -8,7 +8,8 @@ To run locally, execute following
 
 ```bash
 docker build -t phpunit-codebuild-test-reports .
-docker run phpunit-codebuild-test-reports ./vendor/bin/phpunit
+docker run -v ${PWD}:/app phpunit-codebuild-test-reports \
+    ./vendor/bin/phpunit
 ```
 
 ## Running on Cloud
