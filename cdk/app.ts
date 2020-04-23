@@ -17,9 +17,7 @@ class AppStack extends cdk.Stack {
 
     createBuild() {
         const source = this.createSource();
-        const project = new codebuild.Project(this, 'Build', {
-            source: source,
-        });
+        const project = this.createProject(source);
 
         this.addTestReportPermissionToProject(project);
     }
@@ -41,6 +39,12 @@ class AppStack extends cdk.Stack {
         });
 
         return source;
+    }
+
+    createProject(source: codebuild.Source): codebuild.Project {
+        return new codebuild.Project(this, 'Build', {
+            source: source,
+        });
     }
 
     addTestReportPermissionToProject(project: codebuild.IProject) {
