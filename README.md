@@ -4,7 +4,7 @@ This repo contains sample PHP project that will use Test Report feature in CodeB
 
 ## Running Locally
 
-To run locally, execute following
+To run locally, execute following command,
 
 ```bash
 docker build -t phpunit-codebuild-test-reports .
